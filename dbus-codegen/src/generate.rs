@@ -378,6 +378,12 @@ fn write_prop_decl(s: &mut String, p: &Prop, opts: &GenOpts, set: bool) -> Resul
     Ok(())
 }
 
+fn write_intf_name(s: &mut String, i: &Intf) -> Result<(), Box<dyn error::Error>> {
+    let const_name = make_snake(&i.shortname, false).to_uppercase();
+    *s += &format!("\npub const {}_NAME: &str = \"{}\";\n", const_name, i.origname);
+    Ok(())
+}
+
 fn write_intf(s: &mut String, i: &Intf, opts: &GenOpts) -> Result<(), Box<dyn error::Error>> {
 
     let iname = make_camel(&i.shortname);
@@ -791,6 +797,7 @@ pub fn generate(xmldata: &str, opts: &GenOpts) -> Result<String, Box<dyn error::
                         continue;
                     }
                 }
+                write_intf_name(&mut s, &intf)?;
                 write_intf(&mut s, &intf, opts)?;
                 if opts.crhandler.is_some() {
                     write_intf_crossroads(&mut s, &intf, opts)?;
