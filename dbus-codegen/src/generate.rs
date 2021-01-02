@@ -571,6 +571,27 @@ impl<
             }
         }
     }
+    *s += &format!(r#"
+}}
+
+impl<
+    T: std::borrow::BorrowMut<arg::PropMap>,
+> {}<T>
+{{
+"#, struct_name);
+
+    // Setters for settable properties.
+    for p in &i.props {
+        if p.can_set() {
+            let rust_type = make_type(&p.typ, true, &mut None)?;
+            *s += &format!(r#"
+    pub fn {}(&mut self, value: {}) {{
+        self.0.borrow_mut().insert("{}".to_string(), arg::Variant(Box::new(value)));
+    }}
+"#, p.set_fn_name, rust_type, p.name);
+        }
+    }
+
     *s += "}\n";
     Ok(())
 }
