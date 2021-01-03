@@ -531,11 +531,11 @@ fn write_prop_struct(s: &mut String, i: &Intf) -> Result<(), Box<dyn error::Erro
     let struct_name = format!("{}Properties", make_camel(&i.shortname));
     *s += &format!(r#"
 #[derive(Copy, Clone, Debug)]
-pub struct {0}<'a>(pub &'a ::std::collections::HashMap<String, arg::Variant<Box<dyn arg::RefArg>>>);
+pub struct {0}<'a>(pub &'a arg::PropMap);
 
 impl<'a> {0}<'a> {{
     pub fn from_interfaces(
-        interfaces: &'a ::std::collections::HashMap<String, ::std::collections::HashMap<String, arg::Variant<Box<dyn arg::RefArg>>>>,
+        interfaces: &'a ::std::collections::HashMap<String, arg::PropMap>,
     ) -> Option<Self> {{
         interfaces.get("{1}").map(Self)
     }}
