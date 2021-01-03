@@ -83,6 +83,8 @@ pub struct GenOpts {
     pub futures: bool,
     /// Type of connection, for client only
     pub connectiontype: ConnectionType,
+    /// Generates a struct wrapping PropMap to get properties from it with their expected types.
+    pub propnewtype: bool,
     /// interface filter. Only matching interface are generated, if non-empty.
     pub interfaces: Option<HashSet<String>>,
     /// The command line argument string. This will be inserted into generated source files.
@@ -93,7 +95,7 @@ impl ::std::default::Default for GenOpts {
     fn default() -> Self { GenOpts {
         dbuscrate: "dbus".into(), methodtype: Some("MTFn".into()), skipprefix: None,
         serveraccess: ServerAccess::RefClosure, genericvariant: false, futures: false,
-        crhandler: None, connectiontype: ConnectionType::Blocking,
+        crhandler: None, connectiontype: ConnectionType::Blocking, propnewtype: false,
         interfaces: None,
         command_line: String::new()
     }}
@@ -807,7 +809,9 @@ pub fn generate(xmldata: &str, opts: &GenOpts) -> Result<String, Box<dyn error::
                     write_intf_client(&mut s, &intf, opts)?;
                 }
                 write_signals(&mut s, &intf)?;
-                write_prop_struct(&mut s, &intf)?;
+                if opts.propnewtype {
+                    write_prop_struct(&mut s, &intf)?;
+                }
             }
 
             XmlEvent::StartElement { ref name, ref attributes, .. } if &name.local_name == "method" => {
