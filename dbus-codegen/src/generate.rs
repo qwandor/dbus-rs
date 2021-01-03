@@ -529,31 +529,43 @@ fn write_prop_struct(s: &mut String, i: &Intf) -> Result<(), Box<dyn error::Erro
     }
 
     let struct_name = format!("{}Properties", make_camel(&i.shortname));
+
     *s += &format!(r#"
 #[derive(Copy, Clone, Debug)]
-pub struct {0}<'a>(pub &'a arg::PropMap);
+pub struct {0}<
+    T: std::borrow::Borrow<arg::PropMap>,
+>(pub T);
 
-impl<'a> {0}<'a> {{
+impl<'a>
+    {0}<&'a arg::PropMap>
+{{
     pub fn from_interfaces(
         interfaces: &'a ::std::collections::HashMap<String, arg::PropMap>,
     ) -> Option<Self> {{
         interfaces.get("{1}").map(Self)
     }}
+}}
+
+impl<
+    T: std::borrow::Borrow<arg::PropMap>
+> {0}<T>
+{{
 "#, struct_name, i.origname);
 
+    // Getters for gettable properties.
     for p in &i.props {
         if p.can_get() {
             let rust_type = make_type(&p.typ, true, &mut None)?;
             if can_copy_type(&rust_type) {
                 *s += &format!(r#"
     pub fn {}(&self) -> Option<{}> {{
-        arg::prop_cast(self.0, "{}").copied()
+        arg::prop_cast(self.0.borrow(), "{}").copied()
     }}
 "#, p.get_fn_name, rust_type, p.name);
             } else {
                 *s += &format!(r#"
     pub fn {}(&self) -> Option<&{}> {{
-        arg::prop_cast(self.0, "{}")
+        arg::prop_cast(self.0.borrow(), "{}")
     }}
 "#, p.get_fn_name, rust_type, p.name);
             }
